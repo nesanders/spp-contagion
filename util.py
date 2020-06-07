@@ -2,21 +2,22 @@ import numpy as np
 import pandas as pd
 from pybasicbayes.util.text import progprint_xrange
 from types import SimpleNamespace
-import sklearn
 from copy import deepcopy
-import joblib
-import logging
+import logging, itertools
 
 import pyhawkes
-from pyhawkes.models import \
-    DiscreteTimeNetworkHawkesModelGammaMixture, \
-    DiscreteTimeStandardHawkesModel, \
-    ContinuousTimeNetworkHawkesModel
+from pyhawkes.models import DiscreteTimeNetworkHawkesModelGammaMixture
+
+from model_params import get_hawkes_params
 
 import matplotlib.pyplot as plt
+plt.ion()
 prop_cycle = plt.rcParams['axes.prop_cycle']
 colors = prop_cycle.by_key()['color']
 ls_cycle = lambda i: ['-', '--', '-.'][np.mod(i, 3)]
+plot_format = '.png'
+
+plot_dpi = 300
 
 ##########################
 ## Inference functions
@@ -86,47 +87,54 @@ def plot_prob_convergence(df, model_name, c, output_dir):
     plt.ylabel("Log probability")
     plt.axvline(c.N_samples - c.use_samples, ls='dashed', color='orange')
     plt.show()
-    plt.savefig(output_dir + 'test_pyhawkes_' + model_name + '_converge.pdf')
+    plt.savefig(output_dir + 'contagion_' + model_name + '_converge' + plot_format, dpi=plot_dpi)
 
 def plot_zoom_rate(df, model_name, c, output_dir, plot_start=None, plot_delta=60):
     if plot_start is None:
         ## Pick the event that generated the maximum amount of coverage
         plot_start = df['MP_stories_total'].argmax() - 3
     c.last_model.plot(T_slice=(plot_start-plot_delta, plot_start+plot_delta))
-    plt.savefig(output_dir + 'test_pyhawkes_' + model_name + '_plot_zoom_rate.pdf')
+    plt.savefig(output_dir + 'contagion_' + model_name + '_plot_zoom_rate' + plot_format, dpi=plot_dpi)
 
 def plot_adjacency(df, model_name, c, output_dir):
     plt.figure()
     c.last_model.plot_adjacency_matrix()
-    plt.savefig(output_dir + 'test_pyhawkes_' + model_name + '_plot_adjacency.pdf')
+    plt.savefig(output_dir + 'contagion_' + model_name + '_plot_adjacency' + plot_format, dpi=plot_dpi)
 
 def plot_kernel_basis(df, model_name, c, output_dir):
     plt.figure()
     plt.plot(c.last_model.basis.create_basis())
     plt.axvline(c.max_basis_days, ls='dashed', label='Inferred trunctation position')
     plt.legend()
-    plt.savefig(output_dir + 'test_pyhawkes_' + model_name + '_plot_basis.pdf')
+    plt.savefig(output_dir + 'contagion_' + model_name + '_plot_basis' + plot_format, dpi=plot_dpi)
 
-def plot_weighted_impulse(df, model_name, c, output_dir):
+def plot_weighted_impulse(df, model_name, c, output_dir, axs=None, fig_range=None):
     ## Calculate weighted impulse response after the warmup samples
     imps = np.percentile(
         np.array([s.impulses * s.W for s in c.samples[-c.use_samples:]]), 
         [5,50,95], axis=0)
-    fig, axs = plt.subplots(imps.shape[-1], sharex='all')
+    if fig_range is None: fig_range = range(imps.shape[-1])
+    if axs is None: 
+        fig, axs = plt.subplots(imps.shape[-1], sharex='all', sharey='all')
+    else:
+        fig = axs[fig_range[0]].get_figure()
+    kernels = c.last_model.get_parameters()[2]
     if len(kernels) == 1: axs = [axs]
-    for i in range(imps.shape[-1]):
+    for i in fig_range:
         ax = axs[i]
         for j in range(imps.shape[-1]):
             ax.plot(np.arange(len(imps[0,:,j,i])), imps[1,:,j,i], 
-                        label=c.timeseries_labels[j], color=colors[j], zorder=1, lw=2)
+                        label=c.timeseries_labels[j], color=colors[j], zorder=1, lw=2,
+                        ls=ls_cycle(j))
             ax.fill_between(np.arange(len(imps[0,:,j,i])), imps[0,:,j,i], imps[2,:,j,i], 
-                                label=None, alpha=0.5, color=colors[j], zorder=0)
+                                label=None, alpha=0.5, color=colors[j], zorder=0, lw=0)
         ax.set_title('Weighted Effect on '+c.timeseries_labels[i])
-        ax.set_ylabel('Impulse')
-    axs[0].legend(title='Effect of...')
+    plt.figtext(0.02, 0.5, 'Impulse response ($H_{k\\prime~\\rightarrow~k}$)',
+                va='center', rotation=90)
+    ax.legend(title='Effect of...')
     ax.set_xlabel('Days')
     plt.xlim(0, c.max_basis_days)
-    plt.savefig(output_dir + 'test_pyhawkes_' + model_name + '_plot_impulses_90per_weight.pdf')
+    plt.savefig(output_dir + 'contagion_' + model_name + '_plot_impulses_90per_weight' + plot_format, dpi=plot_dpi)
 
 def plot_trace(df, model_name, c, output_dir):
     fig, axs = plt.subplots(2, 2)
@@ -139,7 +147,7 @@ def plot_trace(df, model_name, c, output_dir):
             axs[0, 1].plot(px, 
                 (samp_W[-c.use_samples:, k, jk] - samp_W[-c.use_samples:, k, jk].mean(axis=0))/samp_W[-c.use_samples:, k, jk].std(axis=0), 
                 color=colors[k], ls=ls_cycle(jk)) 
-    axs[0, 0].set_ylabel('W; weight adjacency matrix')
+    axs[0, 0].set_ylabel('W; weight matrix')
     axs[0, 0].legend(fontsize=6)
     samp_lambda0 = np.array([s.lambda0 for s in c.samples])
     axs[1, 0].plot(samp_lambda0)
@@ -150,7 +158,7 @@ def plot_trace(df, model_name, c, output_dir):
     axs[0, 1].set_title('Normalized')
     axs[-1, 0].set_xlabel('Iteration')
     axs[-1, 1].set_xlabel('Iteration (after trimming)')
-    plt.savefig(output_dir + 'test_pyhawkes_' + model_name + '_traces.pdf')
+    plt.savefig(output_dir + 'contagion_' + model_name + '_traces' + plot_format, dpi=plot_dpi)
 
 def do_pyhawkes_plots(df, model_name, fitted_model, output_dir=''):
     ## Load the parameters of the fitted model
@@ -172,7 +180,7 @@ def do_pyhawkes_plots(df, model_name, fitted_model, output_dir=''):
     plot_weighted_impulse(df, model_name, c, output_dir)
 
     ## Plot trace of parameters
-    plot_trace()
+    plot_trace(df, model_name, c, output_dir)
 
     plt.close('all')
 
@@ -180,13 +188,14 @@ def do_pyhawkes_plots(df, model_name, fitted_model, output_dir=''):
 ## Grid simulation functions
 ##########################
 
-def do_hawkes_grid_sim(grid_keys, grid_pars, df, coverage_var='MP_stories_total'):
+def do_hawkes_grid_sim(grid_keys, grid_pars, df, coverage_var='MP_stories_total',
+                       N_samples=1500, use_samples=1000):
     grid_configs = []
     grid_models = []
     grid_W = []
 
     for i, par in enumerate(grid_pars):
-        print f'Starting experiment #{i} out of {len(grid_pars)}'
+        logging.info(f'Starting experiment #{i} out of {len(grid_pars)}')
         thresh = par[grid_keys.index('threshold')]
         grid_configs += [{
             'timeseries': np.array([
@@ -196,16 +205,77 @@ def do_hawkes_grid_sim(grid_keys, grid_pars, df, coverage_var='MP_stories_total'
                 ]).T.astype(int) # Make discrete
             ,
             'timeseries_labels': [
-                f'PMS < {thresh}', 
-                f'PMS >= {thresh}', 
+                f'PMS (lower severity)', 
+                f'PMS (higher severity)', 
                 'Coverage'
                 ],
             'time_shifts': [ 0, 0, 0, ],
             'hawkes_params': get_hawkes_params(**{k:v for k,v in zip(grid_keys, par) if k != 'threshold'})
         }]
         model_name = f'thresh{thresh} : {par}'
-        grid_models += [util.do_pyhawkes_sim(grid_configs[-1], N_samples=1000, use_samples=250)]
+        grid_models += [do_pyhawkes_sim(grid_configs[-1], N_samples=N_samples, use_samples=use_samples)]
         grid_W += [np.array([s.W for i, s in enumerate(grid_models[-1]['samples']) 
                         if i>= grid_models[-1]['N_samples']-grid_models[-1]['use_samples']])]
 
     return grid_configs, grid_models, np.array(grid_W)
+
+def plot_grid_averaged(grid_keys, grid_pars, grid_W, 
+                       label_effect_of, label_effect_on, 
+                       index_effect_of, index_effect_on, plot_dir):
+    fig, axs = plt.subplots(1, len(grid_keys), sharey='all', figsize=(12,5))
+    axs[0].set_ylabel('Weight ($W_{k\\prime~\\rightarrow~k}$) for:\neffect of' + 
+                      f' {label_effect_of} on {label_effect_on}')
+    for i, ax in enumerate(axs):
+        pds = pd.Series(index=np.array(grid_pars)[:, i], 
+                data=grid_W.mean(axis=1)[:, index_effect_of, index_effect_on])
+        pds_g = pds.groupby(level=0).mean()
+        pax = ax.plot(pds_g.index, pds_g.values, '-o')
+        ax.set_xlabel(grid_keys[i])
+
+    plt.tight_layout()
+    plt.savefig(plot_dir+f'grid_search_model_results_simple_{index_effect_of}_{index_effect_on}' + plot_format, dpi=plot_dpi)
+
+def plot_grid_iso(grid_keys, grid_pars, grid_W, 
+                  label_effect_of, label_effect_on, 
+                  index_effect_of, index_effect_on, plot_dir):
+    fig, axs = plt.subplots(1, len(grid_keys), sharey='all', figsize=(12,5))
+    axs[0].set_ylabel('Weight ($W_{k\\prime~\\rightarrow~k}$) for:\neffect of' + 
+                      f' {label_effect_of} on {label_effect_on}')
+    for i, ax in enumerate(axs):
+        ## Split experiments by other parameters
+        ## Remove the target column and then use np.unique to get the elements
+        ## of each unique combination
+        groups = np.unique(np.delete(grid_pars, i, axis=1), return_inverse=True, axis=0)[1]
+        for group_i in np.unique(groups):
+            sel = (groups == group_i)
+            px = np.array(grid_pars)[sel, i].astype(float)
+            ## jitter
+            px += np.random.normal(0, (px[1:]-px[:-1]).mean()/20, len(px))
+            py = np.percentile(grid_W[sel, :, index_effect_of, index_effect_on], 
+                            [5, 50, 95], axis=1)
+            pax = ax.errorbar(px, py[1], yerr=[py[1]-py[0], py[2]-py[1]], fmt='-o', color='k', alpha=0.5)
+        ax.set_xlabel(grid_keys[i])
+
+    plt.tight_layout()
+    plt.savefig(plot_dir+f'grid_search_model_results_iso_{index_effect_of}_{index_effect_on}' + plot_format, dpi=plot_dpi)
+
+def plot_grid_results(grid_keys, grid_configs, grid_pars, grid_W, plot_dir=''):
+    K = grid_configs[0]['timeseries'].shape[1]
+    for index_effect_of in range(K):
+        for index_effect_on in range (index_effect_of, K):
+            label_effect_of = grid_configs[-1]['timeseries_labels'][index_effect_of]
+            label_effect_on = grid_configs[-1]['timeseries_labels'][index_effect_on]
+
+            ## Simple plot of grid search results on K dimensions averaged over the other axes
+            plot_grid_averaged(grid_keys, grid_pars, grid_W, 
+                               label_effect_of, label_effect_on, 
+                               index_effect_of, index_effect_on, plot_dir)
+            
+            ## Iso plot of grid search results on K dimensions -- 
+            ## each line corresponds to constant values of the parameters not shown on that facet
+            plot_grid_iso(grid_keys, grid_pars, grid_W, 
+                          label_effect_of, label_effect_on, 
+                          index_effect_of, index_effect_on, plot_dir)
+            
+        plt.close('all')
+

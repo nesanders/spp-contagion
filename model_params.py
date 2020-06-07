@@ -7,7 +7,7 @@ df = pd.read_csv(data_dir + '2020-03-12_contagion_data.csv')
 
 split_threshold = 6
 
-def get_hawkes_params(dt=1, dt_max=30, B=20,
+def get_hawkes_params(dt=1, dt_max=30, B=16,
                       basis_allow_instantaneous=False,
                       basis_norm=True,
                       bkgd_alpha=1.0, bkgd_beta=1.0,
@@ -49,11 +49,11 @@ ts_dic = {
             ]).T.astype(int) # Make discrete
         ,
         'timeseries_labels': [
-            'PMS', 
+            'MPS', 
             'MP Coverage'
             ],
         'time_shifts': [ 0, 0, ],
-        'hawkes_params': get_hawkes_params(dt_max=30, B=10)
+        'hawkes_params': get_hawkes_params(dt_max=30, B=16)
     },
     'Shootings; AP normalized': {
         'timeseries': np.array([
@@ -62,11 +62,11 @@ ts_dic = {
             ]).T.astype(int) # Make discrete
         ,
         'timeseries_labels': [
-            'PMS', 
+            'MPS', 
             'AP Coverage'
             ],
         'time_shifts': [ 0, 0, ],
-        'hawkes_params': get_hawkes_params(dt_max=30, B=10)
+        'hawkes_params': get_hawkes_params(dt_max=30, B=16)
     },
     'Shootings; TV normalized': {
         'timeseries': np.array([
@@ -75,11 +75,11 @@ ts_dic = {
             ]).T.astype(int) # Make discrete
         ,
         'timeseries_labels': [
-            'PMS', 
+            'MPS', 
             'TV Coverage'
             ],
         'time_shifts': [ 0, 0, ],
-        'hawkes_params': get_hawkes_params(dt_max=30, B=10)
+        'hawkes_params': get_hawkes_params(dt_max=30, B=16)
     },
         
         
@@ -92,12 +92,12 @@ ts_dic = {
             ]).T.astype(int) # Make discrete
         ,
         'timeseries_labels': [
-            f'PMS < {split_threshold}', 
-            f'PMS >= {split_threshold}', 
+            f'MPS < {split_threshold}', 
+            f'MPS >= {split_threshold}', 
             'MP Coverage'
             ],
         'time_shifts': [ 0, 0, 0,],
-        'hawkes_params': get_hawkes_params(dt_max=30, B=10)
+        'hawkes_params': get_hawkes_params(dt_max=30, B=16)
     },        
     f'Shootings <>{split_threshold}; AP normalized': {
         'timeseries': np.array([
@@ -107,12 +107,12 @@ ts_dic = {
             ]).T.astype(int) # Make discrete
         ,
         'timeseries_labels': [
-            f'PMS < {split_threshold}', 
-            f'PMS >= {split_threshold}', 
+            f'MPS < {split_threshold}', 
+            f'MPS >= {split_threshold}', 
             'AP Coverage'
             ],
         'time_shifts': [ 0, 0, 0,],
-        'hawkes_params': get_hawkes_params(dt_max=30, B=10)
+        'hawkes_params': get_hawkes_params(dt_max=30, B=16)
     },        
     f'Shootings <>{split_threshold}; TV normalized': {
         'timeseries': np.array([
@@ -122,11 +122,11 @@ ts_dic = {
             ]).T.astype(int) # Make discrete
         ,
         'timeseries_labels': [
-            f'PMS < {split_threshold}', 
-            f'PMS >= {split_threshold}', 
+            f'MPS < {split_threshold}', 
+            f'MPS >= {split_threshold}', 
             'TV Coverage'
             ],
         'time_shifts': [ 0, 0, 0,],
-        'hawkes_params': get_hawkes_params(dt_max=30, B=10)
+        'hawkes_params': get_hawkes_params(dt_max=30, B=16)
     },
 }
