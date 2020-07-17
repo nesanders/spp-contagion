@@ -8,7 +8,7 @@ import logging, itertools
 import pyhawkes
 from pyhawkes.models import DiscreteTimeNetworkHawkesModelGammaMixture
 
-from model_params import get_hawkes_params
+from model_params import get_hawkes_params, var_names
 
 import matplotlib.pyplot as plt
 plt.ion()
@@ -81,6 +81,9 @@ def do_pyhawkes_sim(config, N_samples=2000, use_samples=1000, thinning=1):
 ##########################
 
 def plot_prob_convergence(df, model_name, c, output_dir):
+    """Plot the probability trace of the MCMC fit to serve as a
+    diagnostic of convergence.
+    """
     plt.figure()
     plt.plot(np.arange(c.N_samples), c.lps, 'k')
     plt.xlabel("Iteration")
@@ -90,18 +93,25 @@ def plot_prob_convergence(df, model_name, c, output_dir):
     plt.savefig(output_dir + 'contagion_' + model_name + '_converge' + plot_format, dpi=plot_dpi)
 
 def plot_zoom_rate(df, model_name, c, output_dir, plot_start=None, plot_delta=60):
+    """Make a plot of the underlying count data and modeled rate function for
+    a fited Hawkes process model, zoomed in around a particular time point.
+    """
     if plot_start is None:
         ## Pick the event that generated the maximum amount of coverage
-        plot_start = df['MP_stories_total'].argmax() - 3
+        plot_start = df[var_names['MP_stories']].argmax() - 3
     c.last_model.plot(T_slice=(plot_start-plot_delta, plot_start+plot_delta))
     plt.savefig(output_dir + 'contagion_' + model_name + '_plot_zoom_rate' + plot_format, dpi=plot_dpi)
 
 def plot_adjacency(df, model_name, c, output_dir):
+    """Plot the adjacency matrix of the Hawkes process network.
+    """
     plt.figure()
     c.last_model.plot_adjacency_matrix()
     plt.savefig(output_dir + 'contagion_' + model_name + '_plot_adjacency' + plot_format, dpi=plot_dpi)
 
 def plot_kernel_basis(df, model_name, c, output_dir):
+    """Plot the basis functions of the Hawkes process kernel.
+    """
     plt.figure()
     plt.plot(c.last_model.basis.create_basis())
     plt.axvline(c.max_basis_days, ls='dashed', label='Inferred trunctation position')
@@ -109,10 +119,14 @@ def plot_kernel_basis(df, model_name, c, output_dir):
     plt.savefig(output_dir + 'contagion_' + model_name + '_plot_basis' + plot_format, dpi=plot_dpi)
 
 def plot_weighted_impulse(df, model_name, c, output_dir, axs=None, fig_range=None):
+    """Plot the fitted impulse functions of the Hawkes process network for
+    each variable, adjusted for the relative weight of the network relation
+    between each variable pair.
+    """
     ## Calculate weighted impulse response after the warmup samples
     imps = np.percentile(
         np.array([s.impulses * s.W for s in c.samples[-c.use_samples:]]), 
-        [5,50,95], axis=0)
+        [2.5, 50, 97.5], axis=0)
     if fig_range is None: fig_range = range(imps.shape[-1])
     if axs is None: 
         fig, axs = plt.subplots(imps.shape[-1], sharex='all', sharey='all')
@@ -128,15 +142,16 @@ def plot_weighted_impulse(df, model_name, c, output_dir, axs=None, fig_range=Non
                         ls=ls_cycle(j))
             ax.fill_between(np.arange(len(imps[0,:,j,i])), imps[0,:,j,i], imps[2,:,j,i], 
                                 label=None, alpha=0.5, color=colors[j], zorder=0, lw=0)
-        ax.set_title('Weighted Effect on '+c.timeseries_labels[i])
+        ax.set_title('Weighted Effect on\n'+c.timeseries_labels[i], ha='center')
     plt.figtext(0.02, 0.5, 'Impulse response ($H_{k\\prime~\\rightarrow~k}$)',
                 va='center', rotation=90)
     ax.legend(title='Effect of...')
     ax.set_xlabel('Days')
     plt.xlim(0, c.max_basis_days)
-    plt.savefig(output_dir + 'contagion_' + model_name + '_plot_impulses_90per_weight' + plot_format, dpi=plot_dpi)
+    plt.savefig(output_dir + 'contagion_' + model_name + '_plot_impulses_95per_weight' + plot_format, dpi=plot_dpi)
 
 def plot_trace(df, model_name, c, output_dir):
+    """Plot the MCMC parameter trace of the fitted model."""
     fig, axs = plt.subplots(2, 2)
     samp_W = np.array([s.W for s in c.samples])
     px = np.arange(c.N_samples)[-c.use_samples:]
@@ -161,6 +176,9 @@ def plot_trace(df, model_name, c, output_dir):
     plt.savefig(output_dir + 'contagion_' + model_name + '_traces' + plot_format, dpi=plot_dpi)
 
 def do_pyhawkes_plots(df, model_name, fitted_model, output_dir=''):
+    """Generate a standardized set of plots for each fitted Hawkes
+    process model.
+    """
     ## Load the parameters of the fitted model
     c = SimpleNamespace(**fitted_model)
     
@@ -188,8 +206,11 @@ def do_pyhawkes_plots(df, model_name, fitted_model, output_dir=''):
 ## Grid simulation functions
 ##########################
 
-def do_hawkes_grid_sim(grid_keys, grid_pars, df, coverage_var='MP_stories_total',
-                       N_samples=1500, use_samples=1000):
+def do_hawkes_grid_sim(grid_keys, grid_pars, df, coverage_var=var_names['MP_stories'],
+                       N_samples=1500, use_samples=1000, 
+                       count_var=var_names['MPS_count'], fatal_var=var_names['MPS_fatal']):
+    """Simulate Hawkes process modeling across a grid of configuration parameters.
+    """
     grid_configs = []
     grid_models = []
     grid_W = []
@@ -199,14 +220,14 @@ def do_hawkes_grid_sim(grid_keys, grid_pars, df, coverage_var='MP_stories_total'
         thresh = par[grid_keys.index('threshold')]
         grid_configs += [{
             'timeseries': np.array([
-                ((df['pms_count']>0) & (df['PMS_numkilled']<thresh)).astype(float).values,
-                ((df['pms_count']>0) & (df['PMS_numkilled']>=thresh)).astype(float).values,
+                ((df[count_var]>0) & (df[fatal_var]<thresh)).astype(float).values,
+                ((df[count_var]>0) & (df[fatal_var]>=thresh)).astype(float).values,
                 df[coverage_var].values,
                 ]).T.astype(int) # Make discrete
             ,
             'timeseries_labels': [
-                f'PMS (lower severity)', 
-                f'PMS (higher severity)', 
+                f'MPS (lower severity)', 
+                f'MPS (higher severity)', 
                 'Coverage'
                 ],
             'time_shifts': [ 0, 0, 0, ],
@@ -252,7 +273,7 @@ def plot_grid_iso(grid_keys, grid_pars, grid_W,
             ## jitter
             px += np.random.normal(0, (px[1:]-px[:-1]).mean()/20, len(px))
             py = np.percentile(grid_W[sel, :, index_effect_of, index_effect_on], 
-                            [5, 50, 95], axis=1)
+                            [2.5, 50, 97.5], axis=1)
             pax = ax.errorbar(px, py[1], yerr=[py[1]-py[0], py[2]-py[1]], fmt='-o', color='k', alpha=0.5)
         ax.set_xlabel(grid_keys[i])
 

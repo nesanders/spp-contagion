@@ -3,7 +3,19 @@ import pandas as pd
 
 ## Read and format data
 data_dir = 'data/'
-df = pd.read_csv(data_dir + '2020-03-12_contagion_data.csv')
+df = pd.read_csv(data_dir + '2020-07-17_contagion_data.csv')
+## Variable --> column name lookup
+var_names = {
+    'numday': 'numday',
+    'pop': 'Population',  ## TODO population is unused
+    'MPS_count': 'MPS_incs',
+    'MPS_fatal': 'MPS_vics',
+    'MS_count': 'MS_incs',
+    'MS_fatal': 'MS_vics',
+    'MP_stories': 'MP_stories',
+    'AP_stories': 'AP_stories',
+    'TV_stories': 'TVSH_stories'
+    }
 
 split_threshold = 6
 
@@ -40,12 +52,12 @@ def get_hawkes_params(dt=1, dt_max=30, B=16,
         }
     }
 
-
-ts_dic = {
-    'Shootings; MP normalized': {
+## Configurations for Mass Public Shootings
+ts_dic_MPS = {
+    'MPS; MP normalized': {
         'timeseries': np.array([
-            ((df['pms_count']>0)).values,
-            df['MP_stories_total'].values / df['MP_stories_total'].std(),
+            ((df[var_names['MPS_count']]>0)).values,
+            df[var_names['MP_stories']].values / df[var_names['MP_stories']].std(),
             ]).T.astype(int) # Make discrete
         ,
         'timeseries_labels': [
@@ -55,10 +67,10 @@ ts_dic = {
         'time_shifts': [ 0, 0, ],
         'hawkes_params': get_hawkes_params(dt_max=30, B=16)
     },
-    'Shootings; AP normalized': {
+    'MPS; AP normalized': {
         'timeseries': np.array([
-            ((df['pms_count']>0)).values,
-            df['AP_stories_total'].values / df['TVShoot_stories_total'].std(),
+            ((df[var_names['MPS_count']]>0)).values,
+            df[var_names['AP_stories']].values / df[var_names['TV_stories']].std(),
             ]).T.astype(int) # Make discrete
         ,
         'timeseries_labels': [
@@ -68,10 +80,10 @@ ts_dic = {
         'time_shifts': [ 0, 0, ],
         'hawkes_params': get_hawkes_params(dt_max=30, B=16)
     },
-    'Shootings; TV normalized': {
+    'MPS; TV normalized': {
         'timeseries': np.array([
-            ((df['pms_count']>0)).values,
-            df['TVShoot_stories_total'].values / df['TVShoot_stories_total'].std(),
+            ((df[var_names['MPS_count']]>0)).values,
+            df[var_names['TV_stories']].values / df[var_names['TV_stories']].std(),
             ]).T.astype(int) # Make discrete
         ,
         'timeseries_labels': [
@@ -81,14 +93,27 @@ ts_dic = {
         'time_shifts': [ 0, 0, ],
         'hawkes_params': get_hawkes_params(dt_max=30, B=16)
     },
-        
-        
-        
-    f'Shootings <>{split_threshold}; MP normalized': {
+    
+    'MPS; long timescale; TV normalized': {
         'timeseries': np.array([
-            ((df['pms_count']>0) & (df['PMS_numkilled']<split_threshold)).values,
-            ((df['pms_count']>0) & (df['PMS_numkilled']>=split_threshold)).values,
-            df['MP_stories_total'].values / df['MP_stories_total'].std(),
+            ((df[var_names['MPS_count']]>0)).values,
+            df[var_names['TV_stories']].values / df[var_names['TV_stories']].std(),
+            ]).T.astype(int) # Make discrete
+        ,
+        'timeseries_labels': [
+            'MPS', 
+            'TV Coverage'
+            ],
+        'time_shifts': [ 0, 0, ],
+        'hawkes_params': get_hawkes_params(dt_max=365, B=16)
+    },        
+        
+        
+    f'MPS <>{split_threshold}; MP normalized': {
+        'timeseries': np.array([
+            ((df[var_names['MPS_count']]>0) & (df[var_names['MPS_fatal']]<split_threshold)).values,
+            ((df[var_names['MPS_count']]>0) & (df[var_names['MPS_fatal']]>=split_threshold)).values,
+            df[var_names['MP_stories']].values / df[var_names['MP_stories']].std(),
             ]).T.astype(int) # Make discrete
         ,
         'timeseries_labels': [
@@ -99,11 +124,11 @@ ts_dic = {
         'time_shifts': [ 0, 0, 0,],
         'hawkes_params': get_hawkes_params(dt_max=30, B=16)
     },        
-    f'Shootings <>{split_threshold}; AP normalized': {
+    f'MPS <>{split_threshold}; AP normalized': {
         'timeseries': np.array([
-            ((df['pms_count']>0) & (df['PMS_numkilled']<split_threshold)).values,
-            ((df['pms_count']>0) & (df['PMS_numkilled']>=split_threshold)).values,
-            df['AP_stories_total'].values / df['AP_stories_total'].std(),
+            ((df[var_names['MPS_count']]>0) & (df[var_names['MPS_fatal']]<split_threshold)).values,
+            ((df[var_names['MPS_count']]>0) & (df[var_names['MPS_fatal']]>=split_threshold)).values,
+            df[var_names['AP_stories']].values / df[var_names['AP_stories']].std(),
             ]).T.astype(int) # Make discrete
         ,
         'timeseries_labels': [
@@ -114,16 +139,120 @@ ts_dic = {
         'time_shifts': [ 0, 0, 0,],
         'hawkes_params': get_hawkes_params(dt_max=30, B=16)
     },        
-    f'Shootings <>{split_threshold}; TV normalized': {
+    f'MPS <>{split_threshold}; TV normalized': {
         'timeseries': np.array([
-            ((df['pms_count']>0) & (df['PMS_numkilled']<split_threshold)).values,
-            ((df['pms_count']>0) & (df['PMS_numkilled']>=split_threshold)).values,
-            df['TVShoot_stories_total'].values / df['TVShoot_stories_total'].std(),
+            ((df[var_names['MPS_count']]>0) & (df[var_names['MPS_fatal']]<split_threshold)).values,
+            ((df[var_names['MPS_count']]>0) & (df[var_names['MPS_fatal']]>=split_threshold)).values,
+            df[var_names['TV_stories']].values / df[var_names['TV_stories']].std(),
             ]).T.astype(int) # Make discrete
         ,
         'timeseries_labels': [
             f'MPS < {split_threshold}', 
             f'MPS >= {split_threshold}', 
+            'TV Coverage'
+            ],
+        'time_shifts': [ 0, 0, 0,],
+        'hawkes_params': get_hawkes_params(dt_max=30, B=16)
+    },
+}
+
+
+## Configurations for Mass Shootings (not MPS)
+ts_dic_MS = {
+    'MS; MP normalized': {
+        'timeseries': np.array([
+            ((df[var_names['MS_count']]>0)).values,
+            df[var_names['MP_stories']].values / df[var_names['MP_stories']].std(),
+            ]).T.astype(int) # Make discrete
+        ,
+        'timeseries_labels': [
+            'MS', 
+            'MP Coverage'
+            ],
+        'time_shifts': [ 0, 0, ],
+        'hawkes_params': get_hawkes_params(dt_max=30, B=16)
+    },
+    'MS; AP normalized': {
+        'timeseries': np.array([
+            ((df[var_names['MS_count']]>0)).values,
+            df[var_names['AP_stories']].values / df[var_names['TV_stories']].std(),
+            ]).T.astype(int) # Make discrete
+        ,
+        'timeseries_labels': [
+            'MS', 
+            'AP Coverage'
+            ],
+        'time_shifts': [ 0, 0, ],
+        'hawkes_params': get_hawkes_params(dt_max=30, B=16)
+    },
+    'MS; TV normalized': {
+        'timeseries': np.array([
+            ((df[var_names['MS_count']]>0)).values,
+            df[var_names['TV_stories']].values / df[var_names['TV_stories']].std(),
+            ]).T.astype(int) # Make discrete
+        ,
+        'timeseries_labels': [
+            'MS', 
+            'TV Coverage'
+            ],
+        'time_shifts': [ 0, 0, ],
+        'hawkes_params': get_hawkes_params(dt_max=30, B=16)
+    },
+        
+    'MS; long timescale; TV normalized': {
+        'timeseries': np.array([
+            ((df[var_names['MS_count']]>0)).values,
+            df[var_names['TV_stories']].values / df[var_names['TV_stories']].std(),
+            ]).T.astype(int) # Make discrete
+        ,
+        'timeseries_labels': [
+            'MS', 
+            'TV Coverage'
+            ],
+        'time_shifts': [ 0, 0, ],
+        'hawkes_params': get_hawkes_params(dt_max=365, B=16)
+    },        
+        
+    f'MS <>{split_threshold}; MP normalized': {
+        'timeseries': np.array([
+            ((df[var_names['MS_count']]>0) & (df[var_names['MS_fatal']]<split_threshold)).values,
+            ((df[var_names['MS_count']]>0) & (df[var_names['MS_fatal']]>=split_threshold)).values,
+            df[var_names['MP_stories']].values / df[var_names['MP_stories']].std(),
+            ]).T.astype(int) # Make discrete
+        ,
+        'timeseries_labels': [
+            f'MS < {split_threshold}', 
+            f'MS >= {split_threshold}', 
+            'MP Coverage'
+            ],
+        'time_shifts': [ 0, 0, 0,],
+        'hawkes_params': get_hawkes_params(dt_max=30, B=16)
+    },        
+    f'MS <>{split_threshold}; AP normalized': {
+        'timeseries': np.array([
+            ((df[var_names['MS_count']]>0) & (df[var_names['MS_fatal']]<split_threshold)).values,
+            ((df[var_names['MS_count']]>0) & (df[var_names['MS_fatal']]>=split_threshold)).values,
+            df[var_names['AP_stories']].values / df[var_names['AP_stories']].std(),
+            ]).T.astype(int) # Make discrete
+        ,
+        'timeseries_labels': [
+            f'MS < {split_threshold}', 
+            f'MS >= {split_threshold}', 
+            'AP Coverage'
+            ],
+        'time_shifts': [ 0, 0, 0,],
+        'hawkes_params': get_hawkes_params(dt_max=30, B=16)
+    },        
+    f'MS <>{split_threshold}; TV normalized': {
+        'timeseries': np.array([
+            ((df[var_names['MS_count']]>0) & (df[var_names['MS_fatal']]<split_threshold)).values,
+            ((df[var_names['MS_count']]>0) & (df[var_names['MS_fatal']]>=split_threshold)).values,
+            df[var_names['TV_stories']].values / df[var_names['TV_stories']].std(),
+            ]).T.astype(int) # Make discrete
+        ,
+        'timeseries_labels': [
+            f'MS < {split_threshold}', 
+            f'MS >= {split_threshold}', 
             'TV Coverage'
             ],
         'time_shifts': [ 0, 0, 0,],

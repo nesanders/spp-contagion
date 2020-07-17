@@ -3,8 +3,9 @@ import shutil, joblib, logging, itertools
 from pathlib import Path
 import matplotlib.pyplot as plt
 import pandas as pd
+from copy import deepcopy
 import util
-from model_params import data_dir, df, get_hawkes_params, ts_dic, split_threshold
+from model_params import data_dir, df, get_hawkes_params, ts_dic_MPS, ts_dic_MS, split_threshold
 
 logging.getLogger().setLevel(logging.INFO)
 ## Setup output directory
@@ -18,8 +19,11 @@ Path(plot_dir).mkdir(parents=True, exist_ok=True)
 
 ## Fit individual models and generate plots 
 pyhawkes_models = {}
-for model_name in ts_dic.keys():
-    pyhawkes_models[model_name] = util.do_pyhawkes_sim(ts_dic[model_name])
+ts_dic_all = deepcopy(ts_dic_MPS); ts_dic_all.update(ts_dic_MS)
+for model_name in ts_dic_all.keys():
+    ## Fit model
+    pyhawkes_models[model_name] = util.do_pyhawkes_sim(ts_dic_all[model_name])
+    ## Make plots
     util.do_pyhawkes_plots(df, model_name, pyhawkes_models[model_name], output_dir = plot_dir)
 
 ## Plot comparison across 2-variable models
@@ -34,7 +38,7 @@ for mi, model_name in enumerate([
 
 #for ax in axs[1, 1:].flatten(): ax.get_legend().set_visible(False)
 for ax in axs.flatten(): ax.set_title('on\n'.join(ax.get_title().split('on ')), ha='center')
-plt.savefig(plot_dir + 'contagion_compare_nothresh_impulses_90per_weight' + util.plot_format,
+plt.savefig(plot_dir + 'contagion_compare_nothresh_impulses_95per_weight' + util.plot_format,
             dpi=util.plot_dpi)
 
 ## Plot comparison across 3-variable models
@@ -49,7 +53,7 @@ for mi, model_name in enumerate([
 
 for ax in axs[1:].flatten(): ax.get_legend().set_visible(False)
 for ax in axs.flatten(): ax.set_title('on\n'.join(ax.get_title().split('on ')), ha='center')
-plt.savefig(plot_dir + f'contagion_compare_thresh{split_threshold}_impulses_90per_weight' + util.plot_format,
+plt.savefig(plot_dir + f'contagion_compare_thresh{split_threshold}_impulses_95per_weight' + util.plot_format,
             dpi=util.plot_dpi)
 
 ## Plot a selected zoom in
