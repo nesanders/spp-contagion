@@ -145,9 +145,10 @@ def plot_weighted_impulse(df, model_name, c, output_dir, axs=None, fig_range=Non
         ax.set_title('Weighted Effect on\n'+c.timeseries_labels[i], ha='center')
     plt.figtext(0.02, 0.5, 'Impulse response ($H_{k\\prime~\\rightarrow~k}$)',
                 va='center', rotation=90)
-    ax.legend(title='Effect of...')
+    ax.legend(title='Effect of...', bbox_to_anchor=(1.1, .7))
     ax.set_xlabel('Days')
     plt.xlim(0, c.max_basis_days)
+    plt.tight_layout()
     plt.savefig(output_dir + 'contagion_' + model_name + '_plot_impulses_95per_weight' + plot_format, dpi=plot_dpi)
 
 def plot_trace(df, model_name, c, output_dir):
@@ -163,6 +164,7 @@ def plot_trace(df, model_name, c, output_dir):
                 (samp_W[-c.use_samples:, k, jk] - samp_W[-c.use_samples:, k, jk].mean(axis=0))/samp_W[-c.use_samples:, k, jk].std(axis=0), 
                 color=colors[k], ls=ls_cycle(jk)) 
     axs[0, 0].set_ylabel('W; weight matrix')
+    axs[0, 0].axvline(c.use_samples, zorder=-1, ls='dashed', color='0.5', label='warmup')
     axs[0, 0].legend(fontsize=6)
     samp_lambda0 = np.array([s.lambda0 for s in c.samples])
     axs[1, 0].plot(samp_lambda0)

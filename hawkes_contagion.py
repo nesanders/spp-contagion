@@ -17,14 +17,20 @@ Path(plot_dir).mkdir(parents=True, exist_ok=True)
 ## Individual model fits
 ##########################
 
+## TODO add in a concrete measure of relative importance and calculate upper limit
+
 ## Fit individual models and generate plots 
 pyhawkes_models = {}
 ts_dic_all = deepcopy(ts_dic_MPS); ts_dic_all.update(ts_dic_MS)
 for model_name in ts_dic_all.keys():
-    ## Fit model
-    pyhawkes_models[model_name] = util.do_pyhawkes_sim(ts_dic_all[model_name])
-    ## Make plots
-    util.do_pyhawkes_plots(df, model_name, pyhawkes_models[model_name], output_dir = plot_dir)
+    if model_name not in pyhawkes_models: ## DEBUG - do not repeat models already fit
+        ## Fit model
+        pyhawkes_models[model_name] = util.do_pyhawkes_sim(ts_dic_all[model_name])
+        ## Make plots
+        util.do_pyhawkes_plots(df, model_name, pyhawkes_models[model_name], output_dir = plot_dir)
+
+## Save out results
+joblib.dump(pyhawkes_models, data_dir+'individual_model_results.jl')
 
 ## Plot comparison across 2-variable models
 fig, axs = plt.subplots(2, 3, sharex='all', sharey='all', figsize=(8, 6))
