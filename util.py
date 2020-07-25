@@ -11,6 +11,12 @@ from pyhawkes.models import DiscreteTimeNetworkHawkesModelGammaMixture
 from model_params import get_hawkes_params, var_names
 
 import matplotlib.pyplot as plt
+
+
+##########################
+## Formatting conveniencens
+##########################
+
 plt.ion()
 prop_cycle = plt.rcParams['axes.prop_cycle']
 colors = prop_cycle.by_key()['color']
@@ -18,6 +24,43 @@ ls_cycle = lambda i: ['-', '--', '-.'][np.mod(i, 3)]
 plot_format = '.png'
 
 plot_dpi = 300
+
+latex_template = r'''\documentclass[article]{{standalone}}
+\usepackage{{booktabs}}
+\begin{{document}}
+{}
+\end{{document}}
+'''
+
+def latex_float(f):
+    """https://stackoverflow.com/a/13490601"""
+    if np.isnan(f): return '-'
+    float_str = "{0:.2g}".format(f)
+    if "e" in float_str:
+        base, exponent = float_str.split("e")
+        return r"${0} \times 10^{{{1}}}$".format(base, int(exponent))
+    else:
+        return float_str
+
+##########################
+## Statistics functions
+##########################
+
+def extract_impulses(c, p=[2.5, 50, 97.5]):
+    """Extract the weighted impulse response function after the warmup samples
+    for the model *c* and return percentile values *p* of the time distribution.
+    """
+    return np.percentile(
+        np.array([s.impulses * s.W for s in c.samples[-c.use_samples:]]), 
+        p, axis=0)
+
+def H_significance(c, i, j):
+    """Calculate the signifiance of an element of a model's H matrix
+    in terms of the distance between the median of the distribution
+    and 0 in units of the 1 sigma range (84th - 16th percentile).
+    """
+    p = extract_impulses(c , p=[16, 50, 84])[:,:,i, j]
+    return np.nanmax(p[1] / (p[2] - p[0]), axis=0)
 
 ##########################
 ## Inference functions
@@ -124,9 +167,7 @@ def plot_weighted_impulse(df, model_name, c, output_dir, axs=None, fig_range=Non
     between each variable pair.
     """
     ## Calculate weighted impulse response after the warmup samples
-    imps = np.percentile(
-        np.array([s.impulses * s.W for s in c.samples[-c.use_samples:]]), 
-        [2.5, 50, 97.5], axis=0)
+    imps = extract_impulses(c)
     if fig_range is None: fig_range = range(imps.shape[-1])
     if axs is None: 
         fig, axs = plt.subplots(imps.shape[-1], sharex='all', sharey='all')
@@ -143,13 +184,16 @@ def plot_weighted_impulse(df, model_name, c, output_dir, axs=None, fig_range=Non
             ax.fill_between(np.arange(len(imps[0,:,j,i])), imps[0,:,j,i], imps[2,:,j,i], 
                                 label=None, alpha=0.5, color=colors[j], zorder=0, lw=0)
         ax.set_title('Weighted Effect on\n'+c.timeseries_labels[i], ha='center')
-    plt.figtext(0.02, 0.5, 'Impulse response ($H_{k\\prime~\\rightarrow~k}$)',
+    plt.figtext(0.0, 0.5, 'Impulse response ($H_{k\\prime~\\rightarrow~k}$)',
                 va='center', rotation=90)
     ax.legend(title='Effect of...', bbox_to_anchor=(1.1, .7))
     ax.set_xlabel('Days')
     plt.xlim(0, c.max_basis_days)
     plt.tight_layout()
-    plt.savefig(output_dir + 'contagion_' + model_name + '_plot_impulses_95per_weight' + plot_format, dpi=plot_dpi)
+    if output_dir is not None:
+        plt.savefig(
+            output_dir + 'contagion_' + model_name + '_plot_impulses_95per_weight' + plot_format, 
+            dpi=plot_dpi)
 
 def plot_trace(df, model_name, c, output_dir):
     """Plot the MCMC parameter trace of the fitted model."""

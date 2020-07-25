@@ -105,7 +105,7 @@ ts_dic_MPS = {
             'TV Coverage'
             ],
         'time_shifts': [ 0, 0, ],
-        'hawkes_params': get_hawkes_params(dt_max=365, B=16)
+        'hawkes_params': get_hawkes_params(dt_max=180, B=16)
     },        
         
         
@@ -210,7 +210,7 @@ ts_dic_MS = {
             'TV Coverage'
             ],
         'time_shifts': [ 0, 0, ],
-        'hawkes_params': get_hawkes_params(dt_max=365, B=16)
+        'hawkes_params': get_hawkes_params(dt_max=180, B=16)
     },        
         
     f'MS <>{split_threshold}; MP normalized': {
