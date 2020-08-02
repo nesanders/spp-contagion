@@ -1,0 +1,80 @@
+\documentclass[article]{standalone}
+\usepackage{booktabs}
+\begin{document}
+\begin{tabular}{llllllrrrr}
+\toprule
+             &                   &    &    &       & Effect on... &            Shootings &  Coverage &  Low severity shoot. &  High severity shoot. \\
+Model type & Statistic & Shooting type & Media type & Timescale & Effect of... &                      &           &                      &                       \\
+\midrule
+Three variable & $H_{\rm{max}}$ & MPS & AP & Short & Coverage &                    - &      0.26 &              0.00017 &               0.00011 \\
+             &                   &    &    &       & High severity shoot. &                    - &       1.9 &                0.016 &                 0.013 \\
+             &                   &    &    &       & Low severity shoot. &                    - &     0.027 &              0.00089 &                0.0057 \\
+             &                   &    & MP & Short & Coverage &                    - &      0.42 &               0.0001 &               0.00012 \\
+             &                   &    &    &       & High severity shoot. &                    - &       1.8 &                0.012 &                 0.013 \\
+             &                   &    &    &       & Low severity shoot. &                    - &      0.05 &              0.00098 &                0.0036 \\
+             &                   &    & TV & Short & Coverage &                    - &      0.34 &   $7 \times 10^{-5}$ &  $3.8 \times 10^{-5}$ \\
+             &                   &    &    &       & High severity shoot. &                    - &       1.7 &                0.012 &                 0.012 \\
+             &                   &    &    &       & Low severity shoot. &                    - &     0.039 &              0.00088 &                0.0054 \\
+             &                   & MS & AP & Short & Coverage &                    - &      0.29 &              0.00024 &                0.0001 \\
+             &                   &    &    &       & High severity shoot. &                    - &      0.66 &                0.015 &                0.0013 \\
+             &                   &    &    &       & Low severity shoot. &                    - &     0.003 &               0.0054 &                 0.013 \\
+             &                   &    & MP & Short & Coverage &                    - &      0.46 & $9.5 \times 10^{-5}$ &  $8.9 \times 10^{-5}$ \\
+             &                   &    &    &       & High severity shoot. &                    - &      0.66 &                 0.02 &                0.0015 \\
+             &                   &    &    &       & Low severity shoot. &                    - &   0.00011 &              0.00031 &                 0.011 \\
+             &                   &    & TV & Short & Coverage &                    - &      0.35 &              0.00018 &  $9.9 \times 10^{-5}$ \\
+             &                   &    &    &       & High severity shoot. &                    - &      0.57 &                0.022 &                0.0021 \\
+             &                   &    &    &       & Low severity shoot. &                    - &     0.031 &               0.0021 &                0.0072 \\
+             & $S_{H, \rm{max}}$ & MPS & AP & Short & Coverage &                    - &       5.6 &               0.0049 &                0.0056 \\
+             &                   &    &    &       & High severity shoot. &                    - &       3.7 &                0.002 &               0.00045 \\
+             &                   &    &    &       & Low severity shoot. &                    - &   0.00021 &               0.0059 &                0.0047 \\
+             &                   &    & MP & Short & Coverage &                    - &       7.6 &               0.0071 &                0.0054 \\
+             &                   &    &    &       & High severity shoot. &                    - &       3.4 &              0.00043 &               0.00045 \\
+             &                   &    &    &       & Low severity shoot. &                    - &      0.16 &               0.0058 &                0.0038 \\
+             &                   &    & TV & Short & Coverage &                    - &        10 &               0.0082 &                0.0094 \\
+             &                   &    &    &       & High severity shoot. &                    - &       2.7 &               0.0004 &               0.00026 \\
+             &                   &    &    &       & Low severity shoot. &                    - &    0.0011 &               0.0029 &                0.0023 \\
+             &                   & MS & AP & Short & Coverage &                    - &       6.2 &               0.0057 &                0.0081 \\
+             &                   &    &    &       & High severity shoot. &                    - &       3.2 &              0.00036 &                0.0038 \\
+             &                   &    &    &       & Low severity shoot. &                    - &    0.0051 &               0.0044 &                   0.3 \\
+             &                   &    & MP & Short & Coverage &                    - &       9.5 &                0.006 &                0.0055 \\
+             &                   &    &    &       & High severity shoot. &                    - &       2.9 &              0.00058 &                0.0097 \\
+             &                   &    &    &       & Low severity shoot. &                    - &    0.0042 &               0.0064 &                  0.41 \\
+             &                   &    & TV & Short & Coverage &                    - &        11 &                0.007 &                0.0093 \\
+             &                   &    &    &       & High severity shoot. &                    - &       2.4 &               0.0011 &                0.0039 \\
+             &                   &    &    &       & Low severity shoot. &                    - &    0.0032 &               0.0043 &                0.0057 \\
+Two variable & $H_{\rm{max}}$ & MPS & AP & Short & Coverage &              0.00014 &      0.28 &                    - &                     - \\
+             &                   &    &    &       & Shootings &               0.0019 &      0.51 &                    - &                     - \\
+             &                   &    & MP & Short & Coverage &              0.00018 &      0.46 &                    - &                     - \\
+             &                   &    &    &       & Shootings &               0.0016 &      0.75 &                    - &                     - \\
+             &                   &    & TV & Long & Coverage & $1.7 \times 10^{-5}$ &      0.12 &                    - &                     - \\
+             &                   &    &    &       & Shootings &              0.00031 &      0.33 &                    - &                     - \\
+             &                   &    &    & Short & Coverage & $9.8 \times 10^{-5}$ &      0.34 &                    - &                     - \\
+             &                   &    &    &       & Shootings &               0.0014 &      0.75 &                    - &                     - \\
+             &                   & MS & AP & Short & Coverage & $7.1 \times 10^{-5}$ &       0.3 &                    - &                     - \\
+             &                   &    &    &       & Shootings &               0.0003 &     0.095 &                    - &                     - \\
+             &                   &    & MP & Short & Coverage & $9.8 \times 10^{-5}$ &      0.49 &                    - &                     - \\
+             &                   &    &    &       & Shootings &               0.0068 &     0.071 &                    - &                     - \\
+             &                   &    & TV & Long & Coverage & $4.2 \times 10^{-5}$ &      0.13 &                    - &                     - \\
+             &                   &    &    &       & Shootings &               0.0031 &     0.057 &                    - &                     - \\
+             &                   &    &    & Short & Coverage & $5.7 \times 10^{-5}$ &      0.35 &                    - &                     - \\
+             &                   &    &    &       & Shootings &               0.0016 &      0.16 &                    - &                     - \\
+             & $S_{H, \rm{max}}$ & MPS & AP & Short & Coverage &               0.0056 &       5.6 &                    - &                     - \\
+             &                   &    &    &       & Shootings &               0.0071 &       2.5 &                    - &                     - \\
+             &                   &    & MP & Short & Coverage &                0.007 &       9.8 &                    - &                     - \\
+             &                   &    &    &       & Shootings &               0.0081 &       3.3 &                    - &                     - \\
+             &                   &    & TV & Long & Coverage &               0.0063 &        14 &                    - &                     - \\
+             &                   &    &    &       & Shootings &               0.0062 &       2.3 &                    - &                     - \\
+             &                   &    &    & Short & Coverage &               0.0081 &        10 &                    - &                     - \\
+             &                   &    &    &       & Shootings &                0.005 &       2.4 &                    - &                     - \\
+             &                   & MS & AP & Short & Coverage &               0.0074 &       6.5 &                    - &                     - \\
+             &                   &    &    &       & Shootings &               0.0077 &       1.9 &                    - &                     - \\
+             &                   &    & MP & Short & Coverage &               0.0072 &        10 &                    - &                     - \\
+             &                   &    &    &       & Shootings &              0.00072 &       1.3 &                    - &                     - \\
+             &                   &    & TV & Long & Coverage &               0.0041 &        14 &                    - &                     - \\
+             &                   &    &    &       & Shootings &              0.00049 &       1.1 &                    - &                     - \\
+             &                   &    &    & Short & Coverage &               0.0053 &        12 &                    - &                     - \\
+             &                   &    &    &       & Shootings &               0.0043 &         2 &                    - &                     - \\
+\bottomrule
+\end{tabular}
+
+\end{document}
