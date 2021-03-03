@@ -1,5 +1,9 @@
 import numpy as np
-import shutil, joblib, logging, itertools
+import shutil
+import os
+import joblib
+import logging
+import itertools
 from pathlib import Path
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -12,16 +16,14 @@ logging.getLogger().setLevel(logging.INFO)
 plot_dir = 'plots/'
 Path(plot_dir).mkdir(parents=True, exist_ok=True)
 
+ts_dic_all = deepcopy(ts_dic_MPS); ts_dic_all.update(ts_dic_MS)
 
 ##########################
 ## Individual model fits
 ##########################
 
-## TODO add in a concrete measure of relative importance and calculate upper limit
-
 ## Fit individual models and generate plots 
 pyhawkes_models = {}
-ts_dic_all = deepcopy(ts_dic_MPS); ts_dic_all.update(ts_dic_MS)
 for model_name in ts_dic_all.keys():
     if model_name not in pyhawkes_models: ## DEBUG - do not repeat models already fit
         ## Fit model
@@ -31,6 +33,10 @@ for model_name in ts_dic_all.keys():
 
 ## Save out results -- TODO this is not working due to a serialization error
 #joblib.dump(pyhawkes_models, data_dir+'individual_model_results.jl')
+
+##########################
+## Individual model fit plots
+##########################
 
 ## Plot comparison across 2-variable models for MPS and MS
 for s_type in ['MPS', 'MS']:
@@ -83,9 +89,13 @@ plt.tight_layout()
 plt.savefig(plot_dir + 'contagion_selected_plot_zoom_rate' + util.plot_format,
             dpi=util.plot_dpi)
 
-## Build an impulse response table
+
+##########################
+## Individual model fit table
+##########################
+
 ir_table_dic = {}
-col_vars = ['Statistic', 'Shooting type', 'Media type', 'Timescale', 'Model type']
+col_vars = ['Model type', 'Statistic', 'Shooting type', 'Media type', 'Timescale']
 for model_name in pyhawkes_models:
     ## Setup column names
     m_stype = 'MPS' if 'MPS' in model_name else 'MS'
@@ -100,69 +110,37 @@ for model_name in pyhawkes_models:
     ## Extract model
     c = util.SimpleNamespace(**pyhawkes_models[model_name])
     ## Calculate H max
-    col_tuple = (r'$H_{\rm{max}}$', m_stype, m_mtype, m_timescale, m_var)
+    col_tuple = (m_var, r'$H_{\rm{max}}$', m_stype, m_mtype, m_timescale)
     ir_table_dic[col_tuple] = pd.DataFrame(data=util.extract_impulses( c, p=97.5).max(axis=0),
                                            index=matrix_dims, columns=matrix_dims)
     ## Calculate significance
-    col_tuple = (r'$S_{H, \rm{max}}$', m_stype, m_mtype, m_timescale, m_var)
+    col_tuple = (m_var, r'$S_{H, \rm{max}}$', m_stype, m_mtype, m_timescale)
     ir_table_dic[col_tuple] = pd.DataFrame(util.H_significance(c, slice(None), slice(None)),
                                            index=matrix_dims, columns=matrix_dims)
 
-ir_table_df = pd.concat(ir_table_dic, names=col_vars).sort_index(level=[0,1,2,3])
+ir_table_df = pd.concat(ir_table_dic, names=col_vars).sort_index(level=[0,1,2,3, 4])
 ir_table_df.index.set_names('Effect of...', level=-1, inplace=True)
 ir_table_df.columns.set_names(['Effect on...'], inplace=True)
+## Save a latex version
 with open('data/impulse_response_table.tex', 'w') as f:
     f.write(util.latex_template.format(ir_table_df.to_latex(escape=False,
                             float_format=util.latex_float)))
+## PDF it
 os.system('pdflatex data/impulse_response_table.tex data/impulse_response_table.pdf')
+## Also save a csv version
+ir_table_df.to_csv('data/impulse_response_table.csv')
 
 
-print("\n\nReport the 95th percentile value of the self-excitation of (low severity) "
-"shootings on shootings for each model")
-for model_name in pyhawkes_models:
-    print (model_name, 
-            util.extract_impulses(
-                util.SimpleNamespace(**pyhawkes_models[model_name]
-                                     ), p=97.5)[:,0,0].max()
-            )
-print("\n\nAlso report the value for self-excitation of higher severity shootings 
-where relevant")
-for model_name in pyhawkes_models:
-    if '<>' in model_name: ## These are models with severity broken down
-        print (model_name, 
-            util.extract_impulses(
-                util.SimpleNamespace(**pyhawkes_models[model_name]
-                                     ), p=97.5)[:,1,1].max()
-            )
-print("\n\nCalculate a significance statistic based on the number of 95% intervals away from 0")
-for model_name in pyhawkes_models:
-    print (model_name, 
-           util.H_significance(util.SimpleNamespace(**pyhawkes_models[model_name]), 0, 0))
-    if '<>' in model_name: ## These are models with severity broken down
-        print ("high severity", 
-           util.H_significance(util.SimpleNamespace(**pyhawkes_models[model_name]), 1, 1))
-print("\n\nCalculate a significance matrix")
-for model_name in pyhawkes_models:
-    print (model_name, '\n', 
-           util.H_significance(util.SimpleNamespace(**pyhawkes_models[model_name]), 
-                               slice(None), slice(None)))
+##########################
+## Sample size simulations
+##########################
 
-## Simulate data to explicate the role of sample size
-## TODO this section is a WIP
-model_name = 'MPS; MP normalized'
-N_sim = 100000
-## Fit a fresh model to the real data
-c_e = util.do_pyhawkes_sim(ts_dic_all[model_name])
-## Pick the sample with the 95th percentile W[0,0] value (i.e. shooting self-excitation weight)
-Ws = np.asarray([s.W[0,0] for s in c_e['samples']])
-pick = int(np.argwhere(Ws == np.percentile(Ws, 95, interpolation='nearest')).squeeze())
-c_e_pick = c_e['samples'][pick]
-## Adjust the W parameters
-#c_e.W[:] = np.array([[0.1, 1.0],
-                  #[1e-4, 0.75]])
-#c_e.W_effective[:] = c_e.W[:]
-## Generate N_sim data samples
-c_e_pick.generate(N_sim)[0].sum(axis=0)
+sim_sig_output = util.do_hawkes_sig_sim(ts_dic_all['MPS; MP normalized'])
+util.plot_sig_sim_results(sim_sig_output, 
+            actual_data_length = len(ts_dic_all[model_name]['timeseries']) / 365)
+plt.savefig(plot_dir + f'significance_simulation_H{target_node}' + util.plot_format,
+            dpi=util.plot_dpi)
+
 
 ##########################
 ## Grid simulation

@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 
 
 ##########################
-## Formatting conveniencens
+## Formatting conveniences
 ##########################
 
 plt.ion()
@@ -33,7 +33,7 @@ latex_template = r'''\documentclass[article]{{standalone}}
 '''
 
 def latex_float(f):
-    """https://stackoverflow.com/a/13490601"""
+    """See https://stackoverflow.com/a/13490601"""
     if np.isnan(f): return '-'
     float_str = "{0:.2g}".format(f)
     if "e" in float_str:
@@ -50,6 +50,8 @@ def extract_impulses(c, p=[2.5, 50, 97.5]):
     """Extract the weighted impulse response function after the warmup samples
     for the model *c* and return percentile values *p* of the time distribution.
     """
+    if type(c) is dict:
+        c = SimpleNamespace(**c)
     return np.percentile(
         np.array([s.impulses * s.W for s in c.samples[-c.use_samples:]]), 
         p, axis=0)
@@ -83,7 +85,8 @@ def do_pyhawkes_sampling(test_model, N_samples, thinning=1):
         test_model.resample_model()
     return samples, lps, test_model
 
-def do_pyhawkes_sim(config, N_samples=2000, use_samples=1000, thinning=1):
+def do_pyhawkes_sim(config, N_samples=2000, use_samples=1000, thinning=1,
+                    pyhawkes_model=DiscreteTimeNetworkHawkesModelGammaMixture):
     fitted_model = {
         'N_samples':int(N_samples/thinning), 
         'use_samples': int(use_samples/thinning), 
@@ -93,7 +96,7 @@ def do_pyhawkes_sim(config, N_samples=2000, use_samples=1000, thinning=1):
     timeseries, timeseries_labels, time_shifts = \
         config['timeseries'], config['timeseries_labels'], config['time_shifts']
     ## Instantiate model
-    test_model = DiscreteTimeNetworkHawkesModelGammaMixture(
+    test_model = pyhawkes_model(
         K=timeseries.shape[1], **config['hawkes_params'])
     
     ## Apply time shifts
@@ -186,7 +189,7 @@ def plot_weighted_impulse(df, model_name, c, output_dir, axs=None, fig_range=Non
         ax.set_title('Weighted Effect on\n'+c.timeseries_labels[i], ha='center')
     plt.figtext(0.0, 0.5, 'Impulse response ($H_{k\\prime~\\rightarrow~k}$)',
                 va='center', rotation=90)
-    ax.legend(title='Effect of...', bbox_to_anchor=(1.1, .7))
+    ax.legend(title='Effect of...', bbox_to_anchor=(1.1, .7), prop={'size': 6})
     ax.set_xlabel('Days')
     plt.xlim(0, c.max_basis_days)
     plt.tight_layout()
@@ -345,4 +348,107 @@ def plot_grid_results(grid_keys, grid_configs, grid_pars, grid_W, plot_dir=''):
                           index_effect_of, index_effect_on, plot_dir)
             
         plt.close('all')
+
+
+##########################
+## Significance simulation functions
+##########################
+
+def do_hawkes_sig_sim(model_config,
+        N_sim_iterations = 20,
+        N_sim_sizes = np.array([5, 10, 20, 40, 80]) * 365,
+        W_vals = np.array([1e-5, 1e-2, 1e-1, .25, .5, .7]),
+        sim_use_samples = 100,
+        sim_MCMC_samples = 600,
+        target_node = (0,0)
+        ):
+    """
+    Run a simulation where a single adjacency matrix value of the base_model is 
+    systematically adjusted, fake data is generated under that model, and then
+    a new model is fit to the fake data.
+    
+    NOTE: Running this simulation will take of order a few minutes per N_sim_iterations.
+    
+    Parameters
+    ---------
+    model_config: dict
+        Model configuration to pass to do_pyhawkes_sim
+    N_sim_iterations: int
+        Number of iterations to run for each configuration, sample size, and W value.
+    N_sim_sizes: List[int]
+        Number of days worth of data to generate in each simulation
+    W_vals: list[float]
+        Values of W to systematically test.
+    sim_use_samples: int
+        The number of MCMC samples to use (post-warmup) from each MCMC chain.
+    sim_MCMC_samples: int
+        The number of MCMC samples to run when doing inference on each simulated dataset.
+    target_node: tuple[int]
+        The (i,j) coordinates of the node of the adjacency matrix to manipulate.
+    
+    Returns
+    -------
+    sim_models: dict[dict[list(pyhawkes model dict)]]
+        A set of model fits to simulated data organized by 
+        W_vals[N_sim_sizes[N_sim_iterations]]
+    """
+    ## Fit a fresh model to the real data
+    c_e = do_pyhawkes_sim(model_config)
+    ## Iterate over sample sizes
+    sim_models = {}
+    for Wzz in W_vals:
+        sim_models[Wzz] = {}
+        for N_sim in N_sim_sizes:
+            sim_models[Wzz][N_sim] = []
+            ## Iterate over simulation iterations
+            for i in range(N_sim_iterations):
+                ## Pick a random model
+                i_pick = np.random.randint(len(c_e['samples'])-c_e['use_samples'], len(c_e['samples']))
+                c_e_pick = deepcopy(c_e['samples'][i_pick])
+                c_e_pick.W[target_node] = Wzz
+                ## Generate N_sim data samples
+                gen_samples = c_e_pick.generate(T=int(N_sim), keep=False)[0]
+                ## Fit a fresh model to the generated data
+                model_config = deepcopy(model_config)
+                model_config['timeseries'] = gen_samples
+                sim_models[Wzz][N_sim] += [do_pyhawkes_sim(model_config, 
+                            N_samples = sim_MCMC_samples, use_samples=sim_use_samples)]
+    return sim_models
+
+def plot_sig_sim_results(sim_models, target_node=(0,0),
+                actual_data_length = None):
+    """Plot the results of a do_hawkes_sig_sim simulation.  The input should
+    be the dictionary of modeul results returned by do_hawkes_sig_sim.
+    """
+    N_sim_sizes = np.array(list(sim_models[list(sim_models.keys())[0]].keys()))
+    ## Plot sample size versus significance
+    sim_significance = {Wzz: {N_sim: [H_significance(sim_models[Wzz][N_sim][i], 
+                                            target_node[0], target_node[1]) 
+                            for i in range(len(sim_models[Wzz][N_sim]))]
+                                for N_sim in sim_models[Wzz]}
+                                    for Wzz in sim_models}
+
+    plt.figure()
+    sim_significance_p = np.array([[
+                    np.percentile(sim_significance[Wzz][N_sim], [16, 50, 84])
+                            for N_sim in sim_significance[Wzz]]
+                                for Wzz in sim_significance]).T
+    for Wi, Wzz in enumerate(sim_significance):
+        color = plt.cm.viridis(float(Wi) / len(sim_significance))
+        ssp = sim_significance_p[:,:,Wi]
+        ## Plot the 1sigma errors
+        plt.errorbar(N_sim_sizes / 365 + Wi/2, ssp[1], 
+                    [ssp[1] - ssp[0], ssp[2] - ssp[1]], 
+                    fmt='-o', lw=1, color=color, 
+                    label=np.format_float_positional(Wzz, trim='-'), 
+                    prop={'size': 6})
+    plt.axhline(1, ls='dashed')
+    if actual_data_length is not None:
+        plt.axvline(actual_data_length, 
+                ls='dotted', color='0.5', label='Actual sample')
+    plt.xlabel('Amount of simulated data (years)')
+    plt.ylabel('Significance of inferred\nshooting self-excitation ($S_{H, \\rm{max}}$)')
+    plt.legend(title='Adjacency weight $W_{0\\rightarrow0}$', bbox_to_anchor=(1,1))
+    #plt.semilogy()
+    plt.tight_layout()
 
