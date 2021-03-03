@@ -189,7 +189,7 @@ def plot_weighted_impulse(df, model_name, c, output_dir, axs=None, fig_range=Non
         ax.set_title('Weighted Effect on\n'+c.timeseries_labels[i], ha='center')
     plt.figtext(0.0, 0.5, 'Impulse response ($H_{k\\prime~\\rightarrow~k}$)',
                 va='center', rotation=90)
-    ax.legend(title='Effect of...', bbox_to_anchor=(1.1, .7), prop={'size': 6})
+    ax.legend(title='Effect of...', bbox_to_anchor=(0.9, .7), prop={'size': 6})
     ax.set_xlabel('Days')
     plt.xlim(0, c.max_basis_days)
     plt.tight_layout()
@@ -418,7 +418,7 @@ def do_hawkes_sig_sim(model_config,
 def plot_sig_sim_results(sim_models, target_node=(0,0),
                 actual_data_length = None):
     """Plot the results of a do_hawkes_sig_sim simulation.  The input should
-    be the dictionary of modeul results returned by do_hawkes_sig_sim.
+    be the dictionary of model results returned by do_hawkes_sig_sim.
     """
     N_sim_sizes = np.array(list(sim_models[list(sim_models.keys())[0]].keys()))
     ## Plot sample size versus significance
@@ -440,8 +440,7 @@ def plot_sig_sim_results(sim_models, target_node=(0,0),
         plt.errorbar(N_sim_sizes / 365 + Wi/2, ssp[1], 
                     [ssp[1] - ssp[0], ssp[2] - ssp[1]], 
                     fmt='-o', lw=1, color=color, 
-                    label=np.format_float_positional(Wzz, trim='-'), 
-                    prop={'size': 6})
+                    label=np.format_float_positional(Wzz, trim='-'))
     plt.axhline(1, ls='dashed')
     if actual_data_length is not None:
         plt.axvline(actual_data_length, 
