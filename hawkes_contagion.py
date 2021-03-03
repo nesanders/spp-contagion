@@ -135,9 +135,11 @@ ir_table_df.to_csv('data/impulse_response_table.csv')
 ## Sample size simulations
 ##########################
 
+target_node = (0,0)
 sim_sig_output = util.do_hawkes_sig_sim(ts_dic_all['MPS; MP normalized'])
 util.plot_sig_sim_results(sim_sig_output, 
-            actual_data_length = len(ts_dic_all[model_name]['timeseries']) / 365)
+            actual_data_length = len(ts_dic_all[model_name]['timeseries']) / 365,
+            target_node=target_node)
 plt.savefig(plot_dir + f'significance_simulation_H{target_node}' + util.plot_format,
             dpi=util.plot_dpi)
 

@@ -19,4 +19,5 @@ To run this code,
 * model_params.py - Specification of data I/O paths and model configurations associated with the analysis.  You can edit this to run the self-exciting point process model in additional configurations, e.g. with other variables.
 * environment.yml - Conda environment specification
 * data/2020-07-17_contagion_data.csv - Final input data file for hawkes_contagion.py used in the published version of the analysis.
+* copy_figures.sh - Map (copy) figures from the output of hawkes_contagion.py to their names/positions from the final published paper.
 
