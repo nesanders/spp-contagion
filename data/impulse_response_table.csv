@@ -1,0 +1,69 @@
+Model type,Statistic,Shooting type,Media type,Timescale,Effect of...,Shootings,Coverage,Low severity shoot.,High severity shoot.
+Three variable,$H_{\rm{max}}$,MPS,AP,Short,Coverage,,0.26463950162773453,7.501023991302204e-05,5.919097462423707e-05
+Three variable,$H_{\rm{max}}$,MPS,AP,Short,High severity shoot.,,1.9196803929040995,0.014449309533815534,0.01185362461156493
+Three variable,$H_{\rm{max}}$,MPS,AP,Short,Low severity shoot.,,0.02220896653347032,0.0008555475205324753,0.004476200045792381
+Three variable,$H_{\rm{max}}$,MPS,MP,Short,Coverage,,0.42579754115253576,8.58610670351368e-05,7.372905945739887e-05
+Three variable,$H_{\rm{max}}$,MPS,MP,Short,High severity shoot.,,1.804783493571801,0.014849550373925423,0.011412018878276278
+Three variable,$H_{\rm{max}}$,MPS,MP,Short,Low severity shoot.,,0.04406464994246264,0.00114615110753589,0.006434216849914327
+Three variable,$H_{\rm{max}}$,MPS,TV,Short,Coverage,,0.3336773268206962,5.013476140797749e-05,5.421645674072914e-05
+Three variable,$H_{\rm{max}}$,MPS,TV,Short,High severity shoot.,,1.6117698584930764,0.016297290614424375,0.007961401393232408
+Three variable,$H_{\rm{max}}$,MPS,TV,Short,Low severity shoot.,,0.02999310693981896,0.0008518646819857946,0.005255791990104705
+Three variable,$H_{\rm{max}}$,MS,AP,Short,Coverage,,0.289892775888509,6.169447126319462e-05,5.749829275801373e-05
+Three variable,$H_{\rm{max}}$,MS,AP,Short,High severity shoot.,,0.6673303616615613,0.024132190349097218,0.002426065368452291
+Three variable,$H_{\rm{max}}$,MS,AP,Short,Low severity shoot.,,0.006423663165620627,0.005173587351647891,0.013598033240171833
+Three variable,$H_{\rm{max}}$,MS,MP,Short,Coverage,,0.4651324923429511,0.0002042093074720084,6.692845749759972e-05
+Three variable,$H_{\rm{max}}$,MS,MP,Short,High severity shoot.,,0.651189380380045,0.022634290541961352,0.0024667994102325905
+Three variable,$H_{\rm{max}}$,MS,MP,Short,Low severity shoot.,,0.0005273418756822485,0.0030767140124208004,0.010150432794580088
+Three variable,$H_{\rm{max}}$,MS,TV,Short,Coverage,,0.34636233784567266,5.069568048734313e-05,6.035047153207837e-05
+Three variable,$H_{\rm{max}}$,MS,TV,Short,High severity shoot.,,0.6012880098929569,0.020015202695871943,0.0020958659760870594
+Three variable,$H_{\rm{max}}$,MS,TV,Short,Low severity shoot.,,0.010283303159595537,0.0029505072213213144,0.011329597838322663
+Three variable,"$S_{H, \rm{max}}$",MPS,AP,Short,Coverage,,5.85494230793531,0.004531449487942223,0.004783864189700676
+Three variable,"$S_{H, \rm{max}}$",MPS,AP,Short,High severity shoot.,,3.3847269776338087,0.00048097410725913783,0.0004739909398298463
+Three variable,"$S_{H, \rm{max}}$",MPS,AP,Short,Low severity shoot.,,0.000275931238230645,0.00400433158205482,0.0060000475199308125
+Three variable,"$S_{H, \rm{max}}$",MPS,MP,Short,Coverage,,8.043727141925007,0.006721400535738374,0.006581118042802377
+Three variable,"$S_{H, \rm{max}}$",MPS,MP,Short,High severity shoot.,,3.4811857176533985,0.0018731276784926248,0.0005078015988629269
+Three variable,"$S_{H, \rm{max}}$",MPS,MP,Short,Low severity shoot.,,0.1400495643558974,0.004639208083871392,0.0009633977859028728
+Three variable,"$S_{H, \rm{max}}$",MPS,TV,Short,Coverage,,10.537709462908357,0.007871134938850588,0.005550856804865154
+Three variable,"$S_{H, \rm{max}}$",MPS,TV,Short,High severity shoot.,,2.9160933737445767,0.0011627167079720404,0.0009269322760684191
+Three variable,"$S_{H, \rm{max}}$",MPS,TV,Short,Low severity shoot.,,0.0005345396972816984,0.007901392152056156,0.003292057060590374
+Three variable,"$S_{H, \rm{max}}$",MS,AP,Short,Coverage,,6.976964691689306,0.005629927343667917,0.005097720016205512
+Three variable,"$S_{H, \rm{max}}$",MS,AP,Short,High severity shoot.,,3.134117931206089,0.0002776753928065493,0.007582299940814387
+Three variable,"$S_{H, \rm{max}}$",MS,AP,Short,Low severity shoot.,,0.0032001207855217994,0.0026578296934511012,0.708452879473269
+Three variable,"$S_{H, \rm{max}}$",MS,MP,Short,Coverage,,9.396399677561432,0.004425684130714347,0.011304380118435488
+Three variable,"$S_{H, \rm{max}}$",MS,MP,Short,High severity shoot.,,3.017050627912216,0.0005220250765795557,0.004885996110608583
+Three variable,"$S_{H, \rm{max}}$",MS,MP,Short,Low severity shoot.,,0.00708873179874153,0.005984209685407492,0.0015992632008783167
+Three variable,"$S_{H, \rm{max}}$",MS,TV,Short,Coverage,,10.520047402420431,0.00369237260676034,0.004286511446131205
+Three variable,"$S_{H, \rm{max}}$",MS,TV,Short,High severity shoot.,,2.171891608808897,0.00091072333875376,0.006546383567051475
+Three variable,"$S_{H, \rm{max}}$",MS,TV,Short,Low severity shoot.,,0.0010937875405642818,0.004550464617504873,0.002443562321905064
+Two variable,$H_{\rm{max}}$,MPS,AP,Short,Coverage,0.00017010172479117036,0.2814098869024332,,
+Two variable,$H_{\rm{max}}$,MPS,AP,Short,Shootings,0.0011913968204195634,0.5006370406763452,,
+Two variable,$H_{\rm{max}}$,MPS,MP,Short,Coverage,6.530974023760515e-05,0.45517264038425853,,
+Two variable,$H_{\rm{max}}$,MPS,MP,Short,Shootings,0.002860643443923979,0.758287784590939,,
+Two variable,$H_{\rm{max}}$,MPS,TV,Long,Coverage,1.941320692895929e-05,0.12233679168297791,,
+Two variable,$H_{\rm{max}}$,MPS,TV,Long,Shootings,0.0007735023971262634,0.30643584663272955,,
+Two variable,$H_{\rm{max}}$,MPS,TV,Short,Coverage,5.473359168911105e-05,0.339311696256347,,
+Two variable,$H_{\rm{max}}$,MPS,TV,Short,Shootings,0.002778531496655242,0.7451098307193158,,
+Two variable,$H_{\rm{max}}$,MS,AP,Short,Coverage,9.753463390960155e-05,0.29527807036522324,,
+Two variable,$H_{\rm{max}}$,MS,AP,Short,Shootings,0.0013125345191230921,0.10013542199723222,,
+Two variable,$H_{\rm{max}}$,MS,MP,Short,Coverage,0.0001274905407059536,0.48235201976621533,,
+Two variable,$H_{\rm{max}}$,MS,MP,Short,Shootings,0.004726813528186719,0.07376211606816732,,
+Two variable,$H_{\rm{max}}$,MS,TV,Long,Coverage,3.139230242176546e-05,0.12843566445864105,,
+Two variable,$H_{\rm{max}}$,MS,TV,Long,Shootings,0.003689827708891675,0.05175804619917346,,
+Two variable,$H_{\rm{max}}$,MS,TV,Short,Coverage,3.814865859296334e-05,0.35234233752246374,,
+Two variable,$H_{\rm{max}}$,MS,TV,Short,Shootings,0.00011045361363934177,0.1523039615878682,,
+Two variable,"$S_{H, \rm{max}}$",MPS,AP,Short,Coverage,0.006452324726439552,6.388678897030594,,
+Two variable,"$S_{H, \rm{max}}$",MPS,AP,Short,Shootings,0.0065022347929231715,2.3695979851846554,,
+Two variable,"$S_{H, \rm{max}}$",MPS,MP,Short,Coverage,0.005758482825984959,8.978494105776418,,
+Two variable,"$S_{H, \rm{max}}$",MPS,MP,Short,Shootings,0.0060925863064997905,3.0452151570014663,,
+Two variable,"$S_{H, \rm{max}}$",MPS,TV,Long,Coverage,0.006556822996994187,13.823989595461583,,
+Two variable,"$S_{H, \rm{max}}$",MPS,TV,Long,Shootings,0.005124139268494808,2.5070795800088446,,
+Two variable,"$S_{H, \rm{max}}$",MPS,TV,Short,Coverage,0.004399882445959313,11.013950878380477,,
+Two variable,"$S_{H, \rm{max}}$",MPS,TV,Short,Shootings,0.002987658304738845,2.4451813813893057,,
+Two variable,"$S_{H, \rm{max}}$",MS,AP,Short,Coverage,0.004719130406624825,6.068460687094491,,
+Two variable,"$S_{H, \rm{max}}$",MS,AP,Short,Shootings,0.0034073824996340347,2.002200768718072,,
+Two variable,"$S_{H, \rm{max}}$",MS,MP,Short,Coverage,0.0066265678063950825,9.954598855490069,,
+Two variable,"$S_{H, \rm{max}}$",MS,MP,Short,Shootings,0.002605089156141484,1.5512743357633685,,
+Two variable,"$S_{H, \rm{max}}$",MS,TV,Long,Coverage,0.007401267909697463,14.586921092381068,,
+Two variable,"$S_{H, \rm{max}}$",MS,TV,Long,Shootings,0.0016158012713506137,1.0768018956544847,,
+Two variable,"$S_{H, \rm{max}}$",MS,TV,Short,Coverage,0.005655109145954742,11.419332476099344,,
+Two variable,"$S_{H, \rm{max}}$",MS,TV,Short,Shootings,0.0042665177696369575,1.7239325179375466,,

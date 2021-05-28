@@ -1,3 +1,7 @@
 __pycache__/
 prepare_raw_data.py
-
+*.aux
+*.log
+data/impulse_response_table.png
+plots_2020-08_submission/
+plots_firstsubmission/
